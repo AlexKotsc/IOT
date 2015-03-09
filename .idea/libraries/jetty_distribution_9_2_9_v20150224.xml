@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="jetty-distribution-9.2.9.v20150224">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/Downloads/jetty-distribution-9.2.9.v20150224.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="jar://$USER_HOME$/Downloads/jetty-distribution-9.2.9.v20150224.zip!/" recursive="false" />
+  </library>
+</component>
