@@ -11,9 +11,10 @@ public class SparkInfo {
 
     String address;
     String access_token;
+    String deviceID;
     InetSocketAddress ip;
 
-    public SparkInfo(String address, String access_token){
+    /*public SparkInfo(String address, String access_token){
         this.address = address;
         this.access_token = access_token;
 
@@ -23,6 +24,20 @@ public class SparkInfo {
                 e.printStackTrace();
             }
 
+    }*/
+
+    public SparkInfo(String access_token, String deviceID){
+        this.access_token = access_token;
+        this.deviceID = deviceID;
+
+        URL tURL = null;
+        try {
+            tURL = new URL(sparkURL());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        ip = new InetSocketAddress(tURL.getHost(), 80);
     }
 
     public String getAddress() {
@@ -37,7 +52,15 @@ public class SparkInfo {
         return ip;
     }
 
+    public String getDeviceID (){return deviceID;}
+
     public int getHash(){
-        return NodeInfo.getHash(ip);
+        if(ip == null) { System.out.println("IP is null"); }
+            return NodeInfo.getHash(ip);
+
+    }
+
+    public String sparkURL(){
+        return "https://api.spark.io/v1/devices/" + deviceID + "/temperature?access_token=" + access_token;
     }
 }

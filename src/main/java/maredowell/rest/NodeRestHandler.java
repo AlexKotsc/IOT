@@ -51,6 +51,7 @@ public class NodeRestHandler {
         resBuilder.append("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>");
         resBuilder.append("</head><body><div class='grid_container'><div id='header' class='prefix-40 grid-20 suffix-40'><h1>Chord-node</h1>");
         resBuilder.append("</div><div id='topchordcont' class='prefix-40 grid-20 suffix-40 chordcont'><p><b>Node information</b></p>");
+        resBuilder.append("<p>JSON: " + myNode.getNodeInfo().toJSON() + "</p>");
         resBuilder.append("<p id='pID'>ID: " + myNode.getHash() + "</p>");
         resBuilder.append("<p>Address: " + myNode.getNodeInfo().getAddressString() + "</p>");
         resBuilder.append("</div><div id='predbtn' class='prefix-30 grid-10 sidebtn'>");
@@ -75,21 +76,25 @@ public class NodeRestHandler {
 
         resBuilder.append("</tbody></table>");
 
-        resBuilder.append("<p><b>Keys</b></p><table><thead><tr><th>Identifier</th><th>Address</th><th>Status</th></tr></thead><tbody>");
+        resBuilder.append("<p><b>Keys</b></p><table><thead><tr><th>Identifier</th><th>Status</th></tr></thead><tbody>");
 
         for(Map.Entry<Integer, SparkInfo> e : myNode.getKeys().entrySet()){
             if(e.getValue()!=null) {
 
-                String temperature = "";
+                Double temperature = 0.0;
 
-                String requestURL = "http://" + e.getValue().getAddress() + "/temperature?access_token=" + e.getValue().getAccess_token();
+                String requestURL = e.getValue().sparkURL();
+
+                /*String requestURL = "http://" + e.getValue().getAddress() + "/temperature?access_token=" + e.getValue().getAccess_token();*/
 
                 try {
+                    System.out.println("Requesting: " + requestURL);
                     HttpResponse<JsonNode> jsonResponse = Unirest.get(requestURL).asJson();
                     //HttpResponse<Json> stringResponse = Unirest.get(requestURL).asJson();
 
                     if(jsonResponse.getStatus()==200){
-                        temperature = (String) jsonResponse.getBody().getObject().get("result");
+                        System.out.println("Got spark");
+                        temperature = (Double) jsonResponse.getBody().getObject().get("result");
                     }
             /*NodeInfo temp = NodeInfo.fromJSON(stringResponse.getBody());
             return temp;*/
@@ -99,7 +104,6 @@ public class NodeRestHandler {
 
                 resBuilder.append("<tr>" +
                                     "<td>" + e.getValue().getHash() + "</td>" +
-                        "<td>" + e.getValue().getAddress() + "</td>" +
                         "<td>" + temperature + "</td>" +
                                     "</tr>");
             }
@@ -256,11 +260,30 @@ public class NodeRestHandler {
         return Response.status(200).entity("Predecessor was set").build();
     }
 
-    @POST @Path("spark")
+    /*@POST @Path("spark")
     public Response addSpark(@QueryParam("address") String addr, @QueryParam("access_token") String access_token){
         refreshNode();
 
         myNode.addSpark(new SparkInfo(addr, access_token));
+
+        saveNode();
+        return Response.status(201).entity("Spark was added").build();
+    }*/
+
+    @POST @Path("spark")
+    public Response testSparkPost(String addr){
+        refreshNode();
+
+        String[] arr = addr.split("&");
+        /*String address = arr[0].split("=")[1];*/
+        String access_token = arr[0].split("=")[1];
+        String deviceID = arr[1].split("=")[1];
+
+        SparkInfo tempSpark = new SparkInfo(access_token, deviceID);
+
+        System.out.println("DeviceID: " + deviceID + "\nAccess Token: " + access_token);
+
+        myNode.addSpark(tempSpark);
 
         saveNode();
         return Response.status(200).entity("Spark was added").build();

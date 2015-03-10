@@ -7,7 +7,6 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import maredowell.chord.Node;
 import maredowell.util.*;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
@@ -294,10 +293,15 @@ public class NodeImpl implements Node {
         } else {
             NodeInfo temp = findSuccessor(si.getHash());
 
+            if(temp.getHash() == getHash()){
+                keys.put(si.getHash(), si);
+                return;
+            }
+
             String requestURL = "http://" + temp.getAddressString() + "/spark";
 
             try {
-                HttpResponse<String> stringResponse = Unirest.post(requestURL).field("address", si.getAddress()).field("access_token", si.getAccess_token()).asString();
+                HttpResponse<String> stringResponse = Unirest.post(requestURL).body("access_token=" + si.getAccess_token() + "&deviceID=" + si.getDeviceID()).asString();
 
                 if(stringResponse.getStatus()==200){
                     System.out.println("Spark information was sent");
