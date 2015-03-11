@@ -8,6 +8,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import maredowell.chord.Node;
 import maredowell.impl.SparkInfo;
 import maredowell.util.NodeInfo;
+import maredowell.util.dbSpark;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -17,6 +18,8 @@ import javax.ws.rs.core.Response;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 
 /**
@@ -269,6 +272,61 @@ public class NodeRestHandler {
         saveNode();
         return Response.status(201).entity("Spark was added").build();
     }*/
+
+    @GET @Path("spark/{id}")
+    public Response displaySparkData(@PathParam("id") String id) {
+        refreshNode();
+
+        System.out.println("Looking up data for core with id: " + id);
+
+        int sparkid = Integer.valueOf(id);
+
+        if (myNode.getKeys().containsKey(sparkid)) {
+            StringBuilder sBuilder = new StringBuilder();
+
+            dbSpark myDB = new dbSpark();
+
+            ResultSet mySet = myDB.execQ("SELECT * FROM `coreinfo` WHERE `id` = " + sparkid);
+
+            if(mySet != null){
+                System.out.println("Got resultset!");
+            }
+
+            sBuilder.append("<html>" +
+                    "<head>" +
+                    "<script type=\"text/javascript\" src=\"https://www.google.com/jsapi?autoload=" +
+                    "{'modules':[{'name':'visualization', 'version':'1', 'packages':['corechart']}]}\"></script>" +
+                    "<script type=\"text/javascript\">google.setOnLoadCallback(drawChart);" +
+                    "function drawChart() {var data = google.visualization.arrayToDataTable(" +
+                    "[['Tid', 'Temperatur'] ");
+
+            try {
+                while(mySet.next()){
+                    sBuilder.append(",['" + mySet.getTimestamp("time").getTime() + "', " + mySet.getDouble("value") + "]");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+
+            sBuilder.append("]); " +
+                    "var options = {title: 'Company Performance', curveType: 'function', legend: { position: 'bottom' }};" +
+                    "var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));" +
+                    "chart.draw(data, options);" +
+                    "}</script>" +
+                    "</head>" +
+                    "<body>" +
+                    "<div id=\"curve_chart\" style=\"width: 900px; height: 500px\"></div>" +
+                    "</body>" +
+                    "</html>");
+
+            return Response.status(200).entity(sBuilder.toString()).build();
+
+        }
+
+
+        return Response.status(500).entity("Could not find spark").build();
+    }
 
     @POST @Path("spark")
     public Response testSparkPost(String addr){
