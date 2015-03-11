@@ -36,6 +36,16 @@ public class dbSpark {
         return null;
     }
 
+    public int execU (String q){
+        try {
+            return stm.executeUpdate(q);
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
     public void closeConnection(){
         try {
             conn.close();

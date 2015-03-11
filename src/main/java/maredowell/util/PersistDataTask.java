@@ -29,11 +29,11 @@ public class PersistDataTask extends TimerTask {
     public void run() {
         if (!n.getKeys().isEmpty()) {
 
-            Connection conn = null;
-
             try {
-               conn = getConnection();
+                Class.forName("com.mysql.jdbc.Driver");
 
+
+            dbSpark db = new dbSpark();
 
             System.out.println("Persisting data from cores");
 
@@ -52,54 +52,23 @@ public class PersistDataTask extends TimerTask {
 
                             temperature = (Double) jsonResponse.getBody().getObject().get("result");
                             System.out.println("Got spark - " + temperature);
-                            Statement stm = conn.createStatement();
+
                             String query = "INSERT INTO  `coreinfo` (`id` , `value` , `time`) VALUES ('" + e.getValue().getHash() + "',  '" + temperature + "', CURRENT_TIMESTAMP);";
-                            if(stm.executeUpdate(query)>0){
-                                System.out.println("Core value was added");
+
+                            if(db.execU(query)>0){
+                                System.out.println("Core value was added to DB");
                             }
                         }
                     } catch (UnirestException f) {
                         f.printStackTrace();
                     }
-
-                    //Store shit in Database.
                 }
             }
-            } catch (SQLException e) {
+            //Close DB after inserting is done
+            db.closeConnection();
+            } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public Connection getConnection() throws SQLException {
-
-        try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        Connection conn = null;
-        /*
-        Properties connectionProps = new Properties();
-        connectionProps.put("user", "a8153419_iotuser");
-        connectionProps.put("password", "iot123");
-
-        DriverManager.getConnection("","","");
-
-        conn = DriverManager.getConnection(
-                "jdbc:mysql://mysql6.000webhost.com:3306/iot",
-                connectionProps);
-
-        System.out.println("Connected to database");*/
-
-        conn = DriverManager.getConnection("jdbc:mysql://localhost/core", "root", "");
-
-        return conn;
     }
 }

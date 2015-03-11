@@ -39,8 +39,8 @@ public class NodeImpl implements Node {
         Timer fixfingerst = new Timer("FingersTask", true);
         Timer persistdatat = new Timer("PersistDataTask", true);
 
-        stabilizet.schedule(new StabilizeTask(this), 1000, 10000);
-        fixfingerst.schedule(new FingersTask(this), 10000, 1000);
+        stabilizet.schedule(new StabilizeTask(this), 1000, 5000);
+        fixfingerst.schedule(new FingersTask(this), 10000, 500);
         predecessort.schedule(new PredecessorTask(this), 20000, 60000);
         persistdatat.schedule(new PersistDataTask(this), 1000, 60000);
 

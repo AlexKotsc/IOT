@@ -7,11 +7,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+
 public class TestServer {
+
+    ServletHolder sh;
 
     public static void main(String[] args) throws Exception {
 
-        ServletHolder sh = new ServletHolder(ServletContainer.class);
+        TestServer t = new TestServer(Integer.parseInt(args[0]));
+
+       /* ServletHolder sh = new ServletHolder(ServletContainer.class);
 
         sh.setInitParameter("jersey.config.server.provider.packages", "maredowell.rest");
 
@@ -27,6 +34,37 @@ public class TestServer {
 
 
         server.start();
-        server.join();
+        server.join();*/
+    }
+
+    public TestServer(int port){
+        sh = new ServletHolder(ServletContainer.class);
+
+        sh.setInitParameter("jersey.config.server.provider.packages", "maredowell.rest");
+
+        ResourceHandler resHandler = new ResourceHandler();
+        resHandler.setDirectoriesListed(true);
+
+        Server server = new Server(port);
+        ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
+        context.addServlet(sh, "/*");
+        context.addEventListener(new InitListener());
+
+        try {
+            server.start();
+            server.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Servlet getServlet(){
+        try {
+            return sh.getServlet();
+        } catch (ServletException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

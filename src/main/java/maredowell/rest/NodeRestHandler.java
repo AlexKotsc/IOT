@@ -106,7 +106,7 @@ public class NodeRestHandler {
                 }
 
                 resBuilder.append("<tr>" +
-                                    "<td>" + e.getValue().getHash() + "</td>" +
+                                    "<td><a href=\"spark/" + e.getValue().getHash() + "\" target=\"_blank\">" + e.getValue().getHash() + "</a></td>" +
                         "<td>" + temperature + "</td>" +
                                     "</tr>");
             }
@@ -263,16 +263,6 @@ public class NodeRestHandler {
         return Response.status(200).entity("Predecessor was set").build();
     }
 
-    /*@POST @Path("spark")
-    public Response addSpark(@QueryParam("address") String addr, @QueryParam("access_token") String access_token){
-        refreshNode();
-
-        myNode.addSpark(new SparkInfo(addr, access_token));
-
-        saveNode();
-        return Response.status(201).entity("Spark was added").build();
-    }*/
-
     @GET @Path("spark/{id}")
     public Response displaySparkData(@PathParam("id") String id) {
         refreshNode();
@@ -310,7 +300,7 @@ public class NodeRestHandler {
 
 
             sBuilder.append("]); " +
-                    "var options = {title: 'Company Performance', curveType: 'function', legend: { position: 'bottom' }};" +
+                    "var options = {title: 'Temperature over time - " + sparkid + "', curveType: 'function', legend: { position: 'bottom' }};" +
                     "var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));" +
                     "chart.draw(data, options);" +
                     "}</script>" +
@@ -324,6 +314,23 @@ public class NodeRestHandler {
 
         }
 
+        NodeInfo temp = myNode.findSuccessor(sparkid);
+
+        if(temp != null){
+
+            String requestURL = "http://" + temp.getAddressString() + "/spark/" + sparkid;
+
+            try {
+                HttpResponse<String> stringResponse = Unirest.get(requestURL).asString();
+
+                if(stringResponse.getStatus()==200){
+                    return Response.status(200).entity(stringResponse.getBody()).build();
+                }
+
+            } catch (UnirestException e) {
+                e.printStackTrace();
+            }
+        }
 
         return Response.status(500).entity("Could not find spark").build();
     }
